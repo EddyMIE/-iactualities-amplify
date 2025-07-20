@@ -1,0 +1,25 @@
+{
+  "paths": {
+    "/query": {
+      "name": "/query",
+      "lambdaFunction": "bedrockFunction",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/health": {
+      "name": "/health",
+      "lambdaFunction": "bedrockFunction",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/improve-prompt": {
+      "name": "/improve-prompt",
+      "lambdaFunction": "bedrockFunction",
+      "permissions": {
+        "setting": "open"
+      }
+    }
+  }
+} 

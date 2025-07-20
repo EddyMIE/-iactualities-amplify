@@ -1,0 +1,6 @@
+@echo off
+echo Nettoyage du cache React...
+rmdir /s /q node_modules\.cache 2>nul
+rmdir /s /q build 2>nul
+echo Redémarrage de l'application...
+npm start 

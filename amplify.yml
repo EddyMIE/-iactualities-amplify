@@ -1,0 +1,36 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: iactualities-comparator/build
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - iactualities-comparator/node_modules/**/*
+      - iactualities-comparator/.next/cache/**/*
+
+backend:
+  phases:
+    build:
+      commands:
+        - pip install -r requirements.txt
+        - pip install mangum
+    postBuild:
+      commands:
+        - echo "Backend build completed"
+  artifacts:
+    baseDirectory: /
+    files:
+      - backend_main.py
+      - requirements.txt
+      - amplify/backend/function/bedrockFunction/src/index.js
+  cache:
+    paths:
+      - .venv/**/* 

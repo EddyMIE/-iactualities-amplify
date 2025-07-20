@@ -1,0 +1,8 @@
+streamlit
+boto3
+botocore
+requests
+python-dotenv 
+fastapi
+uvicorn
+openai>=1.0.0 

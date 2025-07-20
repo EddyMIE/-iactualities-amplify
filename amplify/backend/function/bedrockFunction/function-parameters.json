@@ -1,0 +1,12 @@
+{
+  "lambdaLayers": [],
+  "environmentVariables": {
+    "AWS_REGION": "eu-west-3",
+    "GPT4O_API_KEY": "",
+    "GPT4O_ENDPOINT": "",
+    "GPT4O_MINI_API_KEY": "",
+    "GPT4O_MINI_ENDPOINT": "",
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY": ""
+  }
+} 

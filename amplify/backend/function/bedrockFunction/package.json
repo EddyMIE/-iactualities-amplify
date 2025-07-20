@@ -1,0 +1,14 @@
+{
+  "name": "bedrock-function",
+  "version": "1.0.0",
+  "description": "Lambda function for IA'ctualités backend",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": ["aws", "lambda", "fastapi", "amplify"],
+  "author": "IA'ctualités",
+  "license": "MIT"
+} 

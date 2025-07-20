@@ -1,0 +1,23 @@
+{
+  "api": {
+    "llmcomparator": {
+      "service": "API Gateway",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [
+        {
+          "category": "function",
+          "resourceName": "bedrockFunction",
+          "attributes": ["Name", "Arn"]
+        }
+      ]
+    }
+  },
+  "function": {
+    "bedrockFunction": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda",
+      "dependsOn": []
+    }
+  }
+} 
