@@ -25,7 +25,7 @@ export class LLMService {
 
       const response = await axios.post(`${this.baseURL}/query`, {
         model,
-        prompt
+        question: prompt  // ✅ CORRECTION ICI : question au lieu de prompt
       }, {
         timeout: 45000, // 45 seconds timeout (réduit pour éviter les blocages)
         headers: {
@@ -114,4 +114,4 @@ export class LLMService {
       return false;
     }
   }
-} 
+}
