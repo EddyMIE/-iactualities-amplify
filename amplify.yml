@@ -3,9 +3,11 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - cd iactualities-comparator
+        - npm install
     build:
       commands:
+        - cd iactualities-comparator
         - npm run build
   artifacts:
     baseDirectory: iactualities-comparator/build
