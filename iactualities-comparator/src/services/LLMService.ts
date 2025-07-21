@@ -27,7 +27,7 @@ export class LLMService {
         model,
         question: prompt  // ✅ CORRECTION ICI : question au lieu de prompt
       }, {
-        timeout: 45000, // 45 seconds timeout (réduit pour éviter les blocages)
+        timeout: 120000, // 45 seconds timeout (réduit pour éviter les blocages)
         headers: {
           'Content-Type': 'application/json',
         },
