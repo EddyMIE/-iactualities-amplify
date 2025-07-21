@@ -1,0 +1,53 @@
+🔑 CONFIGURATION DES CLÉS API - IA'ctualités
+=================================================
+
+Créez un fichier .env avec VOS vraies clés API :
+
+# Configuration AWS Bedrock
+AWS_REGION=eu-west-3
+AWS_ACCESS_KEY_ID=votre_aws_access_key
+AWS_SECRET_ACCESS_KEY=votre_aws_secret_key
+
+# Configuration Azure OpenAI - GPT-4o
+GPT4O_API_KEY=1Ue0sQ11eK6J7iLNvSM9HgXOiIqg2a697PTB33PmM9IIDDsA3d4kJQQJ99BBACfhMk5XJ3w3AAAAACOGuvaK
+GPT4O_API_VERSION=2025-01-01-preview
+GPT4O_DEPLOYMENT_NAME=Eddy-deploy-20-02-2025-gpt-4o
+GPT4O_ENDPOINT=https://eddy-02-2025-azureaiservices017852658000.openai.azure.com/
+
+# Configuration Azure OpenAI - GPT-4o Mini
+GPT4O_MINI_API_KEY=1Ue0sQ11eK6J7iLNvSM9HgXOiIqg2a697PTB33PmM9IIDDsA3d4kJQQJ99BBACfhMk5XJ3w3AAAAACOGuvaK
+GPT4O_MINI_API_VERSION=2024-12-01-preview
+GPT4O_MINI_DEPLOYMENT_NAME=Eddy-02-2025-gpt-4o-mini
+GPT4O_MINI_ENDPOINT=https://eddy-02-2025-azureaiservices017852658000.openai.azure.com/
+
+🚀 COMMENT PASSER EN MODE RÉEL :
+=================================
+
+1. Copiez votre fichier .env existant (avec vos vraies clés)
+2. Arrêtez le backend de test (Ctrl+C)
+3. Lancez le backend réel :
+   python backend_real.py
+
+🛠️ MODÈLES DISPONIBLES :
+========================
+
+AWS Bedrock :
+- Mixtral 8x7B Instruct
+- Claude 3 Sonnet
+- Claude 3 Haiku  
+- Claude 3.7 Sonnet
+- Pixtral Large
+
+Azure OpenAI :
+- GPT-4o (Azure)
+- GPT-4o Mini (Azure)
+
+💰 COÛTS AUTOMATIQUES :
+======================
+Le backend calcule automatiquement les coûts en USD basés sur les tokens consommés.
+
+🔧 DÉPENDANCES SUPPLÉMENTAIRES :
+==============================
+pip install openai boto3 python-dotenv
+
+📱 L'interface React reste identique - seul le backend change ! 

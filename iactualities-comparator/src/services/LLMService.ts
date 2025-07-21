@@ -11,8 +11,8 @@ export class LLMService {
   private baseURL: string;
 
   constructor() {
-    // Utiliser l'URL Amplify pour l'API
-    this.baseURL = process.env.REACT_APP_API_URL || 'https://master.dqkeoqzyuoyui.amplifyapp.com/api';
+    // URL de l'API AWS Amplify
+    this.baseURL = process.env.REACT_APP_API_URL || 'https://pzvxjuhgaj.execute-api.eu-west-3.amazonaws.com/prod';
   }
 
   async queryModel(model: string, prompt: string): Promise<QueryResponse> {
