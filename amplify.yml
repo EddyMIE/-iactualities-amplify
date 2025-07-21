@@ -7,7 +7,6 @@ frontend:
         - npm install
     build:
       commands:
-        - cd iactualities-comparator
         - npm run build
   artifacts:
     baseDirectory: iactualities-comparator/build
