@@ -202,64 +202,6 @@ const ImproveButton = styled(motion.button)`
   }
 `;
 
-const SuggestionCard = styled(motion.div)`
-  background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
-  border: 1px solid #4caf50;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-top: 1rem;
-  position: relative;
-`;
-
-const SuggestionHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-`;
-
-const SuggestionTitle = styled.h4`
-  color: #2e7d32;
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const PromptTypeBadge = styled.span`
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  color: white;
-  font-size: 0.75rem;
-  padding: 0.125rem 0.5rem;
-  border-radius: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-`;
-
-const ApplyButton = styled(motion.button)`
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: #388e3c;
-    transform: translateY(-1px);
-  }
-`;
-
-const SuggestionText = styled.p`
-  color: #1b5e20;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  margin: 0;
-`;
-
 const ModelGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -470,29 +412,7 @@ function App() {
   ]);
   const [results, setResults] = useState<LLMResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [improvePrompt, setImprovePrompt] = useState(false);
   const [showCost, setShowCost] = useState(true);
-  const [suggestion, setSuggestion] = useState<string>('');
-  const [improvingPrompt, setImprovingPrompt] = useState(false);
-  const [promptType, setPromptType] = useState<string>('');
-
-  const detectPromptType = (prompt: string): string => {
-    const promptLower = prompt.toLowerCase();
-    
-    if (promptLower.includes('comparer') || promptLower.includes('différence') || promptLower.includes('vs') || promptLower.includes('versus')) {
-      return 'COMPARAISON';
-    } else if (promptLower.includes('analyser') || promptLower.includes('expliquer') || promptLower.includes('pourquoi')) {
-      return 'ANALYSE';
-    } else if (promptLower.includes('créer') || promptLower.includes('générer') || promptLower.includes('écrire') || promptLower.includes('rédiger')) {
-      return 'CRÉATION';
-    } else if (promptLower.includes('rechercher') || promptLower.includes('trouver') || promptLower.includes('quand') || promptLower.includes('où')) {
-      return 'RECHERCHE';
-    } else if (promptLower.includes('calculer') || promptLower.includes('résoudre') || promptLower.includes('problème')) {
-      return 'CALCUL';
-    } else {
-      return 'GÉNÉRAL';
-    }
-  };
 
   const availableModels = [
     { name: "Mixtral 8x7B Instruct", description: "Modèle open source performant" },
@@ -577,35 +497,6 @@ function App() {
     return "IA'ctualités : Sélectionnez 1 à 3 modèles pour une comparaison optimale !";
   };
 
-  const handleImprovePrompt = async () => {
-    if (!question.trim() || improvingPrompt) return;
-    
-    setImprovingPrompt(true);
-    setSuggestion('');
-    
-    // Détecter le type de prompt
-    const detectedType = detectPromptType(question);
-    setPromptType(detectedType);
-    
-    try {
-      const llmService = new LLMService();
-      const result = await llmService.improvePrompt(question);
-      setSuggestion(result || '');
-    } catch (error) {
-      console.error('Erreur lors de l\'amélioration du prompt:', error);
-      setSuggestion('Impossible d\'améliorer le prompt pour le moment.');
-    } finally {
-      setImprovingPrompt(false);
-    }
-  };
-
-  const applySuggestion = () => {
-    if (suggestion) {
-      setQuestion(suggestion);
-      setSuggestion('');
-    }
-  };
-
   // Fonction pour formater et améliorer la lisibilité des réponses
   const formatResponse = (response: string): string => {
     if (!response) return '';
@@ -678,44 +569,7 @@ function App() {
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                 />
-                                                  <ImproveButton
-                   whileHover={{ scale: 1.02 }}
-                   whileTap={{ scale: 0.98 }}
-                   onClick={handleImprovePrompt}
-                   disabled={loading || improvingPrompt || !question.trim()}
-                   title={question.trim() ? `Type détecté: ${detectPromptType(question)}` : ''}
-                 >
-                   <Bot size={16} />
-                   {improvingPrompt ? 'Amélioration...' : 'Améliorer'}
-                 </ImproveButton>
                </QuestionInputContainer>
-               
-               {suggestion && (
-                 <SuggestionCard
-                   initial={{ opacity: 0, y: 10 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   transition={{ duration: 0.3 }}
-                 >
-                   <SuggestionHeader>
-                     <SuggestionTitle>
-                       💡 Suggestion d'amélioration
-                       {promptType && (
-                         <PromptTypeBadge>
-                           {promptType}
-                         </PromptTypeBadge>
-                       )}
-                     </SuggestionTitle>
-                     <ApplyButton
-                       whileHover={{ scale: 1.05 }}
-                       whileTap={{ scale: 0.95 }}
-                       onClick={applySuggestion}
-                     >
-                       Appliquer
-                     </ApplyButton>
-                   </SuggestionHeader>
-                   <SuggestionText>{suggestion}</SuggestionText>
-                 </SuggestionCard>
-               )}
              </Card>
 
             <Card

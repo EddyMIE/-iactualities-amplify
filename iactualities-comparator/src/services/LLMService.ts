@@ -116,24 +116,6 @@ export class LLMService {
     return Math.ceil(text.length / 4);
   }
 
-  async improvePrompt(prompt: string): Promise<string> {
-    try {
-      const response = await axios.post(`${this.baseURL}/improve-prompt`, {
-        prompt
-      }, {
-        timeout: 30000,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      return response.data.improved_prompt || prompt;
-    } catch (error) {
-      console.error('Erreur lors de l\'amélioration du prompt:', error);
-      return prompt;
-    }
-  }
-
   async checkHealth(): Promise<boolean> {
     try {
       const response = await axios.get(`${this.baseURL}/health`, {
