@@ -11,7 +11,8 @@ export class LLMService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    // Utiliser l'URL Amplify pour l'API
+    this.baseURL = process.env.REACT_APP_API_URL || 'https://master.dqkeoqzyuoyui.amplifyapp.com/api';
   }
 
   async queryModel(model: string, prompt: string): Promise<QueryResponse> {
