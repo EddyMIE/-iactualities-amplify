@@ -499,9 +499,7 @@ function App() {
     { name: "Claude 3 Sonnet", description: "IA conversationnelle avancée" },
     { name: "Claude 3 Haiku", description: "Rapide et efficace" },
     { name: "Claude 3.7 Sonnet", description: "Dernière génération" },
-    { name: "Pixtral Large", description: "Vision et création" },
-    { name: "GPT-4o (Azure)", description: "Modèle multimodal" },
-    { name: "GPT-4o Mini (Azure)", description: "Version optimisée" }
+    { name: "Pixtral Large", description: "Vision et création" }
   ];
 
   const handleCompare = async () => {
