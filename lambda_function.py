@@ -1,210 +1,155 @@
 import json
 import os
 import boto3
-from mangum import Mangum
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
-import openai
-import anthropic
-import requests
+import time
+from botocore.exceptions import ClientError
 
-# Configuration FastAPI
-app = FastAPI(title="IActualities Comparator API", version="1.0.0")
-
-# Configuration CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # En production, spécifiez vos domaines
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Modèles Pydantic
-class QueryRequest(BaseModel):
-    question: str
-    model: str
-
-class QueryResponse(BaseModel):
-    response: str
-    model: str
-    cost: Optional[float] = None
-    tokens_used: Optional[int] = None
-
-# Configuration des clients
-def get_openai_client():
-    """Configure le client OpenAI/Azure"""
-    api_key = os.getenv('AZURE_OPENAI_API_KEY')
-    endpoint = os.getenv('AZURE_OPENAI_ENDPOINT')
+def lambda_handler(event, context):
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Max-Age': '86400'
+    }
     
-    if not api_key or not endpoint:
-        raise HTTPException(status_code=500, detail="Configuration Azure OpenAI manquante")
+    if event.get('httpMethod') == 'OPTIONS':
+        return {'statusCode': 200, 'headers': headers, 'body': ''}
     
-    return openai.AzureOpenAI(
-        api_key=api_key,
-        api_version="2024-02-15-preview",
-        azure_endpoint=endpoint
-    )
-
-def get_anthropic_client():
-    """Configure le client Anthropic"""
-    api_key = os.getenv('ANTHROPIC_API_KEY')
+    path = event.get('path', '')
     
-    if not api_key:
-        raise HTTPException(status_code=500, detail="Configuration Anthropic manquante")
-    
-    return anthropic.Anthropic(api_key=api_key)
-
-def get_bedrock_client():
-    """Configure le client AWS Bedrock"""
-    try:
-        return boto3.client(
-            'bedrock-runtime',
-            region_name='eu-west-3',
-            aws_access_key_id=os.getenv('CUSTOM_AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.getenv('CUSTOM_AWS_SECRET_ACCESS_KEY')
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur configuration Bedrock: {str(e)}")
-
-# Fonctions de requête par modèle
-async def query_azure_openai(question: str) -> Dict[str, Any]:
-    """Interroge Azure OpenAI (GPT-4o)"""
-    try:
-        client = get_openai_client()
-        deployment_name = os.getenv('AZURE_OPENAI_DEPLOYMENT_NAME', 'gpt-4o')
-        
-        response = client.chat.completions.create(
-            model=deployment_name,
-            messages=[
-                {"role": "system", "content": "Vous êtes un assistant IA spécialisé dans l'analyse d'actualités. Répondez de manière claire et concise."},
-                {"role": "user", "content": question}
-            ],
-            max_tokens=1000,
-            temperature=0.7
-        )
-        
+    if path == '/health' and event.get('httpMethod') == 'GET':
         return {
-            "response": response.choices[0].message.content,
-            "cost": 0.0,  # À calculer selon votre tarification
-            "tokens_used": response.usage.total_tokens
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur Azure OpenAI: {str(e)}")
-
-async def query_anthropic(question: str) -> Dict[str, Any]:
-    """Interroge Anthropic (Claude 3 Haiku)"""
-    try:
-        client = get_anthropic_client()
-        
-        response = client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=1000,
-            messages=[
-                {"role": "user", "content": question}
-            ]
-        )
-        
-        return {
-            "response": response.content[0].text,
-            "cost": 0.0,  # À calculer selon votre tarification
-            "tokens_used": response.usage.input_tokens + response.usage.output_tokens
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur Anthropic: {str(e)}")
-
-async def query_bedrock(question: str) -> Dict[str, Any]:
-    """Interroge AWS Bedrock (Mixtral)"""
-    try:
-        client = get_bedrock_client()
-        
-        prompt = f"""<s>[INST] {question} [/INST]"""
-        
-        response = client.invoke_model(
-            modelId="mistral.mixtral-8x7b-instruct-v0:1",
-            body=json.dumps({
-                "prompt": prompt,
-                "max_tokens": 1000,
-                "temperature": 0.7
+            'statusCode': 200,
+            'headers': headers,
+            'body': json.dumps({
+                'status': 'healthy',
+                'message': 'API IActualities Comparator opérationnelle'
             })
-        )
-        
-        response_body = json.loads(response['body'].read())
-        
-        return {
-            "response": response_body['completions'][0]['text'],
-            "cost": 0.0,  # À calculer selon votre tarification
-            "tokens_used": 0  # Bedrock ne retourne pas toujours les tokens
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur Bedrock: {str(e)}")
-
-# Routes API
-@app.get("/health")
-async def health_check():
-    """Point de terminaison de santé"""
-    return {"status": "healthy", "message": "API IActualities Comparator opérationnelle"}
-
-@app.post("/query", response_model=QueryResponse)
-async def query_ai(request: QueryRequest):
-    """Interroge un modèle d'IA spécifique"""
-    try:
-        if request.model == "GPT-4o (Azure)":
-            result = await query_azure_openai(request.question)
-        elif request.model == "Claude 3 Haiku":
-            result = await query_anthropic(request.question)
-        elif request.model == "Mixtral 8x7B Instruct":
-            result = await query_bedrock(request.question)
-        else:
-            raise HTTPException(status_code=400, detail=f"Modèle non supporté: {request.model}")
-        
-        return QueryResponse(
-            response=result["response"],
-            model=request.model,
-            cost=result.get("cost"),
-            tokens_used=result.get("tokens_used")
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur inattendue pour {request.model}: {str(e)}")
-
-@app.get("/models")
-async def get_available_models():
-    """Retourne la liste des modèles disponibles"""
-    return {
-        "models": [
-            {
-                "id": "GPT-4o (Azure)",
-                "name": "GPT-4o (Azure)",
-                "provider": "OpenAI/Azure",
-                "description": "Modèle GPT-4o via Azure OpenAI"
-            },
-            {
-                "id": "Claude 3 Haiku",
-                "name": "Claude 3 Haiku",
-                "provider": "Anthropic",
-                "description": "Modèle Claude 3 Haiku rapide et efficace"
-            },
-            {
-                "id": "Mixtral 8x7B Instruct",
-                "name": "Mixtral 8x7B Instruct",
-                "provider": "AWS Bedrock",
-                "description": "Modèle Mixtral 8x7B via AWS Bedrock"
+    
+    elif path == '/query' and event.get('httpMethod') == 'POST':
+        try:
+            body = json.loads(event.get('body', '{}'))
+            question = body.get('question')
+            model = body.get('model')
+            
+            if not question or not model:
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({'error': 'Question et modèle requis'})
+                }
+            
+            result = query_universal_with_retry(question, model)
+            
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({
+                    'response': result['response'],
+                    'model': model
+                })
             }
-        ]
+            
+        except Exception as e:
+            return {
+                'statusCode': 500,
+                'headers': headers,
+                'body': json.dumps({'error': f'Erreur: {str(e)}'})
+            }
+    
+    return {
+        'statusCode': 404,
+        'headers': headers,
+        'body': json.dumps({'error': 'Route non trouvée'})
     }
 
-# Handler Lambda
-def lambda_handler(event, context):
-    """Handler principal pour AWS Lambda"""
-    asgi_handler = Mangum(app, lifespan="off")
-    return asgi_handler(event, context)
+def query_universal_with_retry(question, model_name, max_retries=3):
+    """Requête avec retry automatique en cas de throttling"""
+    for attempt in range(max_retries):
+        try:
+            return query_bedrock_universal(question, model_name)
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            
+            if error_code == 'ThrottlingException' and attempt < max_retries - 1:
+                # Attendre avant de réessayer (backoff exponentiel)
+                wait_time = (2 ** attempt) + 1  # 2s, 5s, 9s
+                time.sleep(wait_time)
+                continue
+            else:
+                # Erreur finale ou autre type d'erreur
+                return {"response": f"Erreur Bedrock: {str(e)}"}
+        except Exception as e:
+            return {"response": f"Erreur inattendue: {str(e)}"}
+    
+    return {"response": "Limite de débit AWS atteinte. Veuillez réessayer dans quelques minutes."}
 
-# Pour le développement local
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+def query_bedrock_universal(question, model_name):
+    client = boto3.client('bedrock-runtime', region_name='eu-west-3')
+    
+    # Configuration par modèle avec les BONS identifiants
+    if model_name == "Mixtral 8x7B Instruct":
+        model_id = "mistral.mixtral-8x7b-instruct-v0:1"  # PAS cross-region
+        body = {
+            "prompt": f"<s>[INST] {question} [/INST]",
+            "max_tokens": 1000,
+            "temperature": 0.7
+        }
+    
+    elif model_name == "Pixtral Large":
+        model_id = "eu.mistral.pixtral-large-2502-v1:0"  # Cross-region
+        body = {
+            "prompt": f"<s>[INST] {question} [/INST]",
+            "max_tokens": 1000,
+            "temperature": 0.7
+        }
+        
+    elif "claude" in model_name.lower():
+        if "haiku" in model_name.lower():
+            model_id = "anthropic.claude-3-haiku-20240307-v1:0"  # Standard
+        elif "3.7" in model_name:
+            model_id = "eu.anthropic.claude-3-7-sonnet-20250219-v1:0"  # Claude 3.7 cross-region
+        elif "sonnet" in model_name.lower():
+            model_id = "anthropic.claude-3-sonnet-20240229-v1:0"  # Claude 3 Sonnet standard
+        else:
+            model_id = "anthropic.claude-3-haiku-20240307-v1:0"  # Par défaut
+            
+        body = {
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 1000,
+            "temperature": 0.7,
+            "messages": [{"role": "user", "content": question}]
+        }
+        
+    else:
+        return {"response": f"Modèle {model_name} non supporté pour le moment"}
+    
+    try:
+        response = client.invoke_model(
+            modelId=model_id,
+            body=json.dumps(body),
+            contentType="application/json",
+            accept="application/json"
+        )
+        response_body = json.loads(response['body'].read())
+        
+        # Extraction correcte selon le modèle
+        if "claude" in model_name.lower():
+            content_list = response_body.get("content", [])
+            text = content_list[0]["text"] if content_list and "text" in content_list[0] else "Pas de réponse"
+        else:
+            # Pour Mixtral et Pixtral
+            if "choices" in response_body:
+                # Format Pixtral
+                text = response_body.get("choices", [{}])[0].get("message", {}).get("content", "Pas de réponse")
+            elif "outputs" in response_body:
+                # Format Mixtral
+                text = response_body.get("outputs", [{}])[0].get("text", "Pas de réponse")
+            else:
+                text = "Format de réponse inconnu"
+            
+        return {"response": text}
+        
+    except Exception as e:
+        raise e  # Remonter l'exception pour gestion dans query_universal_with_retry 
