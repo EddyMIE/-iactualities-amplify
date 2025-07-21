@@ -77,13 +77,40 @@ def query_universal_with_retry(question, model_name, max_retries=3):
                 wait_time = (2 ** attempt) + 1  # 2s, 5s, 9s
                 time.sleep(wait_time)
                 continue
+            elif error_code == 'ThrottlingException':
+                # Messages drôles pour le throttling
+                funny_messages = [
+                    "🔋 Oh là ! Je recharge mes batteries... Laisse-moi quelques instants pour souffler ! ⚡",
+                    "🚦 Doucement ! Tu vas trop vite pour moi ! Laisse-moi le temps de respirer... 😅",
+                    "⏰ Oups ! Tu as atteint ma limite de speed dating ! Reviens dans 2-3 minutes, je serai plus en forme ! 💪",
+                    "🎯 Mince ! Je galère un peu avec le serveur AWS... Fais une pause café ☕ et reviens me voir !",
+                    "🏃‍♂️ Stop ! Tu cours trop vite ! Même les IA ont besoin de faire une pause pipi ! 🚽",
+                    "🔥 Wow ! Tu me fais chauffer les circuits ! Laisse-moi me refroidir 2 minutes... 🧊"
+                ]
+                import random
+                return {"response": random.choice(funny_messages)}
+            elif error_code == 'ValidationException':
+                return {"response": "🤔 Hmm... Il semblerait que ce modèle joue à cache-cache ! Essaie un autre modèle pendant que je le cherche ! 🕵️‍♂️"}
+            elif error_code == 'AccessDeniedException':
+                return {"response": "🚫 Oops ! Il semblerait que je n'aie pas les clés de cette voiture... L'admin a oublié de me donner les permissions ! 🔑"}
+            elif error_code == 'ServiceUnavailableException':
+                return {"response": "🛠️ Le service fait sa sieste technique ! Même les serveurs AWS ont besoin de dormir parfois... 😴 Reviens dans quelques minutes !"}
             else:
-                # Erreur finale ou autre type d'erreur
-                return {"response": f"Erreur Bedrock: {str(e)}"}
+                # Autres erreurs AWS
+                return {"response": f"🤖 Bip bop ! Erreur mystérieuse détectée : {error_code}. Même moi je ne sais pas ce que ça veut dire ! 🤷‍♂️"}
+                
         except Exception as e:
-            return {"response": f"Erreur inattendue: {str(e)}"}
+            # Erreurs générales
+            funny_general_errors = [
+                "🎭 Plot twist ! Quelque chose d'inattendu s'est produit dans les coulisses ! 🎪",
+                "🔮 Ma boule de cristal est embuée... Je ne vois pas ce qui se passe ! ✨",
+                "🚀 Houston, nous avons un problème ! Mais rien de grave, juste un petit hoquet cosmique ! 🌌",
+                "🎲 Les dés du destin ont mal roulé cette fois... Relance la partie ! 🎯"
+            ]
+            import random
+            return {"response": f"{random.choice(funny_general_errors)} (Détail technique : {str(e)[:100]}...)"}
     
-    return {"response": "Limite de débit AWS atteinte. Veuillez réessayer dans quelques minutes."}
+    return {"response": "🏁 Après 3 tentatives héroïques, je déclare forfait ! Même les super-héros ont leurs limites ! Reviens me voir dans 5 minutes ! 🦸‍♂️"}
 
 def query_bedrock_universal(question, model_name):
     client = boto3.client('bedrock-runtime', region_name='eu-west-3')
