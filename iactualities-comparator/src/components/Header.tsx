@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const HeaderContainer = styled.header`
   position: fixed;
@@ -22,6 +22,12 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
   
   img {
     height: 60px;
@@ -30,32 +36,16 @@ const Logo = styled.div`
   }
 `;
 
-const SettingsButton = styled.button`
-  background: transparent;
-  border: none;
-  color: #1a237e;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: scale(1.05);
-  }
-`;
+
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <HeaderContainer>
-      <Logo>
+      <Logo onClick={() => navigate('/')}>
         <img src="/images/logo_dark.png" alt="IA'ctualités" />
       </Logo>
-      <SettingsButton>
-        <Settings size={20} />
-        Paramètres
-      </SettingsButton>
     </HeaderContainer>
   );
 };
